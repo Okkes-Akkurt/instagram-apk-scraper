@@ -53,7 +53,7 @@ Node.js uygulamasını başlatmak için:
 
 ```bash
 cd server
-node index.js
+node server.js
 ```
 
 ## 4. API Endpoint'leri
