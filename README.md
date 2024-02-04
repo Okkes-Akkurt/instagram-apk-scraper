@@ -38,10 +38,10 @@ Instagram APK Scraper uygulamasını kullanabilmek için Node.js ve MongoDB'nin 
 Uygulamayı indirmek ve bağımlılıkları yüklemek için aşağıdaki adımları takip edin:
 
 ```bash
-git clone [repo-link]
-cd instagram-apk-scraper
+git clone [https://github.com/Okkes-Akkurt/instagram-apk-scraper]
+cd server
 npm install
-cd instagram-apk-scraper-ui
+cd client
 npm install
 ```
 
@@ -52,7 +52,7 @@ npm install
 Node.js uygulamasını başlatmak için:
 
 ```bash
-cd instagram-apk-scraper
+cd server
 node index.js
 ```
 
@@ -70,10 +70,10 @@ curl http://localhost:3001/versions
 
 ### 4.2 Belirli Bir Sürümün Ayrıntılarını Listeleme
 
-Endpoint: GET /versions/:versionId
+Endpoint: GET /:versionId
 
 ```bash
-curl http://localhost:3001/versions/263.2.0.19.104
+curl http://localhost:3001/263.2.0.19.104
 ```
 
 ## 5. Docker ile Uygulamayı Ayağa Kaldırma
