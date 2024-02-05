@@ -72,7 +72,6 @@ const saveApk = async (versionInfo) => {
 const fetchVariantData = async (version) => {
 	try {
 		const modifiedVersion = version.match(/\d+/g).join('-').replace(/\./g, '-');
-		console.log(modifiedVersion);
 		const url = `https://www.apkmirror.com/apk/instagram/instagram-instagram/instagram-instagram-${modifiedVersion}-release/`;
 		const response = await axios.get(url);
 		const $ = cheerio.load(response.data);
@@ -96,9 +95,6 @@ const fetchVariantData = async (version) => {
 			}
 		});
 
-		console.log(variants);
-		console.log(variants.length);
-
 		return variants;
 	} catch (error) {
 		console.error('Error fetching variant data:', error.message);
@@ -113,9 +109,22 @@ const updateVariantsForApks = async () => {
 		for (const apk of latestApks) {
 			const variantDataArray = await fetchVariantData(apk.version);
 
-
 			if (variantDataArray && variantDataArray.length > 0) {
-				await Apk.updateOne({ _id: apk._id }, { $push: { variants: { $each: variantDataArray } } });
+				const uniqueVariants = variantDataArray.filter((variant) => {
+					// Return true if no existing variant with the same variantId is found
+					return !apk.variants.some((existingVariant) => existingVariant.variantId == variant.variantId);
+				});
+
+				if (uniqueVariants.length > 0) {
+					// Use $push to insert the unique variants into the variants array
+					await Apk.updateOne(
+						{ _id: apk._id },
+						{
+							$push: { variants: { $each: uniqueVariants } },
+							$inc: { variantCount: uniqueVariants.length },
+						},
+					);
+				}
 			}
 		}
 

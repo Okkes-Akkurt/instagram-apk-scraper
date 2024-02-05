@@ -1,42 +1,42 @@
-//server.js
 const express = require('express');
-const mongoose = require('mongoose');
+const versionRoutes = require('./routes/versionRoutes');
 const dotenv = require('dotenv');
 const cors = require('cors');
-const apkController = require('./controllers/apkController.js');
-const versionRoutes = require('./routes/versionRoutes.js');
+const mongoose = require('mongoose');
 
 dotenv.config();
-const app = express();
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-const dbUri = process.env.DB_URI;
 
-mongoose
-	.connect(dbUri)
-	.then(() => {
-		console.log('MongoDB bağlantısı başarılı.');
-		const port = process.env.PORT || 3001;
-		app.listen(port, () => {
-			console.log(`Uygulama ${port} portunda çalışıyor`);
-		});
-	})
-	.catch((error) => {
-		console.error('MongoDB bağlantı hatası:', error.message);
-	});
+const app = express();
+const port = process.env.PORT || 3001;
 
 app.use(cors());
+app.use(express.json());
 
+// Routes
 app.use('/versions', versionRoutes);
 
-app.get('/', async (req, res) => {
+// Connect to MongoDB
+const connectToDatabase = async () => {
 	try {
-		const versions = await apkController.fetchAndSaveInstagramApks();
-		res.status(200).json({
-			versions,
+		const dbUri = process.env.DB_URI;
+		await mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true });
+		console.log('MongoDB bağlantısı başarılı.');
+	} catch (error) {
+		console.error('MongoDB bağlantı hatası:', error.message);
+		throw error; // Re-throw the error to handle it in the caller function
+	}
+};
+
+// Start the server
+const startServer = async () => {
+	try {
+		await connectToDatabase();
+		app.listen(port, () => {
+			console.log(`Server is running on port ${port}`);
 		});
 	} catch (error) {
-		console.error('Server veri çekme hatası:', error.message);
-		res.status(500).send('Veri çekme hatası');
+		console.error('Server başlatma hatası:', error.message);
 	}
-});
+};
+
+startServer();

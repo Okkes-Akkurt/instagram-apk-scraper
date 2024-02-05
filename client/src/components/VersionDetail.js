@@ -2,16 +2,22 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const VersionDetail = ({ versionId }) => {
-	const [versionDetails, setVersionDetails] = useState(null);
+	const [versionDetails, setVersionDetails] = useState([]);
+	const [compHeader, setCompHeader] = useState('');
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState('');
 
 	useEffect(() => {
 		const fetchVersionDetails = async () => {
 			try {
-				const response = await axios.get(`http://localhost:3001/${versionId}`);
-				setVersionDetails(response.data);
+				const response = await axios.get(`http://localhost:3001/versions/${versionId}`);
+				setVersionDetails(response.data.variants);
+				setCompHeader(response.data.version);
 			} catch (error) {
 				console.error('Veri çekme hatası:', error.message);
-				setVersionDetails({ error: 'Veri çekme hatası' });
+				setError(`Veri çekme hatası: ${error.message}`);
+			} finally {
+				setLoading(false);
 			}
 		};
 
@@ -20,24 +26,33 @@ const VersionDetail = ({ versionId }) => {
 
 	return (
 		<div>
-			<h2>{versionId} Detayları</h2>
-			{versionDetails !== null ? (
-				versionDetails.error ? (
-					<p>{versionDetails.error}</p>
-				) : versionDetails.variants && versionDetails.variants.length > 0 ? (
-					<ul>
-						{versionDetails.variants.map((variant) => (
-							<li key={variant.variantId}>
-								{variant.variantId} - {variant.architecture} - {variant.minAndroidVersion} -{' '}
-								{variant.dpi}
+			{loading ? (
+				<p>Detaylar yükleniyor...</p>
+			) : error ? (
+				<p>{error}</p>
+			) : (
+				<div>
+					<h2>{compHeader} Detayları</h2>
+					<ol className='olcards'>
+						{versionDetails.map((variant, index) => (
+							<li
+								key={index}
+								style={{ '--cardColor': variant.cardColor || '#fc374e' }}>
+								<div className='content'>
+									<div className='variantId'>
+										<span>variantId : </span>
+										{variant.variantId}
+									</div>
+									<div className='architecture'><span>architecture : </span>{variant.architecture}</div>
+									<div className='minAndroidVersion'>
+										<span>minAndroidVersion : </span>{variant.minAndroidVersion}
+									</div>
+									<div className='dpi'><span>dpi : </span>{variant.dpi}</div>
+								</div>
 							</li>
 						))}
-					</ul>
-				) : (
-					<p>Detaylar bulunamadı.</p>
-				)
-			) : (
-				<p>Detaylar yükleniyor...</p>
+					</ol>
+				</div>
 			)}
 		</div>
 	);
