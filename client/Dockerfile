@@ -1,9 +1,16 @@
-
-# Node client
 FROM node:latest
-WORKDIR /src/app
-COPY package.json .
+
+
+WORKDIR /client/src/App/
+
+COPY package*.json ./
+
 RUN npm install
+
 COPY . .
-RUN npm start
+
+RUN npm run build
+
 EXPOSE 3000
+
+CMD ["npm", "start"]
