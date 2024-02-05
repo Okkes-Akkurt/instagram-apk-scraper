@@ -8,6 +8,8 @@ services:
             - '3001:3001'
         depends_on:
             - mongodb
+        environment:
+            - DB_URI='mongodb+srv://root:root1234@cluster0.plzqshw.mongodb.net/?retryWrites=true&w=majority'
     frontend:
         build: ./client
         ports:
