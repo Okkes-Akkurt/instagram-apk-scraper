@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 const cheerio = require('cheerio');
 const mongoose = require('mongoose');
@@ -78,19 +77,29 @@ const fetchVariantData = async (version) => {
 		const response = await axios.get(url);
 		const $ = cheerio.load(response.data);
 
-		const divs = $('div.table-cell.rowheight.addseparator.expand.pad.dowrap');
-		const spans = $('span.colorLightBlack');
-		const variantId = $(spans[0]).text();
-		const architecture = $(divs[1]).text();
-		const minAndroidVersion = $(divs[2]).text();
-		const dpi = $(divs[3]).text();
+		const variants = [];
 
-		return {
-			variantId,
-			architecture,
-			minAndroidVersion,
-			dpi,
-		};
+		const variantContainers = $('div.table-cell.rowheight.addseparator.expand.pad.dowrap');
+
+		variantContainers.each((index, element) => {
+			const variant = {};
+
+			variant.architecture = $(element).next('.table-cell').text().trim();
+			variant.minAndroidVersion = $(element).nextAll('.table-cell').eq(1).text().trim();
+			variant.dpi = $(element).nextAll('.table-cell').eq(2).text().trim();
+
+			const spans = $(element).find('span.colorLightBlack');
+			variant.variantId = $(spans[0]).text().trim();
+
+			if (variant.variantId !== '') {
+				variants.push(variant);
+			}
+		});
+
+		console.log(variants);
+		console.log(variants.length);
+
+		return variants;
 	} catch (error) {
 		console.error('Error fetching variant data:', error.message);
 		return null;
@@ -102,11 +111,11 @@ const updateVariantsForApks = async () => {
 		const latestApks = await Apk.find({});
 
 		for (const apk of latestApks) {
-			const variantData = await fetchVariantData(apk.version);
+			const variantDataArray = await fetchVariantData(apk.version);
 
-			if (variantData) {
-				apk.variants.push(variantData);
-				await apk.save();
+
+			if (variantDataArray && variantDataArray.length > 0) {
+				await Apk.updateOne({ _id: apk._id }, { $push: { variants: { $each: variantDataArray } } });
 			}
 		}
 
